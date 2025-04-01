@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { AlertCircle, DollarSign } from 'lucide-react';
+import { useFormData } from '../context/FormDataContext'; // Fix: Import useFormData
 
 interface TransactionData {
   date: string;
@@ -12,6 +13,10 @@ interface TransactionData {
 
 interface FormErrors {
   [key: string]: string;
+}
+
+interface TransactionFormProps {
+  onNextStep: () => void;
 }
 
 const TRANSACTION_TYPES = [
@@ -39,7 +44,9 @@ const CATEGORIES = [
   'Administration',
 ] as const;
 
-const TransactionForm: React.FC = () => {
+const TransactionForm: React.FC<TransactionFormProps> = ({ onNextStep }) => {
+  const { updateTransactionData } = useFormData(); // Fix: Use context function
+
   const [formData, setFormData] = useState<TransactionData>({
     date: '',
     type: '',
@@ -132,27 +139,20 @@ const TransactionForm: React.FC = () => {
 
     if (validateForm()) {
       try {
-        // Convert the form data to the required structure
-        const submissionData = {
-          date: new Date(formData.date),
-          type: formData.type,
-          amount: parseFloat(formData.amount),
-          description: formData.description,
-          category: formData.category,
-          paymentMethod: formData.paymentMethod,
-        };
+        // Update the context
+        updateTransactionData(formData); // Fix: Call context update function
 
         // Simulate API call
         await new Promise(resolve => setTimeout(resolve, 1000));
-        console.log('Transaction submitted:', submissionData);
+        console.log('Transaction submitted:', formData);
 
         setSubmitSuccess(true);
-        resetForm();
 
-        // Reset success message after 3 seconds
+        // Reset success message after 2 seconds and proceed to next step
         setTimeout(() => {
           setSubmitSuccess(false);
-        }, 3000);
+          onNextStep();
+        }, 2000);
       } catch (error) {
         console.error('Error submitting transaction:', error);
       }

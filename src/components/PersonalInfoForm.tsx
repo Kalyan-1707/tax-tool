@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
+import { useFormData } from '../context/FormDataContext';
 
 interface FormData {
   fullName: string;
@@ -14,19 +15,21 @@ interface FormErrors {
   [key: string]: string;
 }
 
-const PersonalInfoForm: React.FC = () => {
-  const [formData, setFormData] = useState<FormData>({
-    fullName: '',
-    email: '',
-    phone: '',
-    dateOfBirth: '',
-    contactMethod: 'email',
-    address: '',
-  });
+interface PersonalInfoFormProps {
+  onNextStep: () => void;
+}
 
+const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ onNextStep }) => {
+  const { formData: contextFormData, updatePersonalInfo } = useFormData();
+  const [formData, setFormData] = useState<FormData>(contextFormData.personalInfo);
   const [errors, setErrors] = useState<FormErrors>({});
   const [submitted, setSubmitted] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+
+  // Update local state when context data changes
+  useEffect(() => {
+    setFormData(contextFormData.personalInfo);
+  }, [contextFormData.personalInfo]);
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -65,24 +68,20 @@ const PersonalInfoForm: React.FC = () => {
 
     if (validateForm()) {
       try {
+        // Update the context with form data
+        updatePersonalInfo(formData);
+        
         // Simulate API call
         await new Promise(resolve => setTimeout(resolve, 1000));
         setSubmitSuccess(true);
-        // Reset form after successful submission
+        
+        // Move to next step after short delay to show success message
         setTimeout(() => {
-          setSubmitted(false);
-          setSubmitSuccess(false);
-          setFormData({
-            fullName: '',
-            email: '',
-            phone: '',
-            dateOfBirth: '',
-            contactMethod: 'email',
-            address: '',
-          });
-        }, 3000);
+          onNextStep();
+        }, 1500);
       } catch (error) {
         setSubmitSuccess(false);
+        console.error("Error submitting form:", error);
       }
     }
   };
@@ -110,7 +109,7 @@ const PersonalInfoForm: React.FC = () => {
           aria-live="polite"
         >
           <CheckCircle2 className="h-5 w-5 mr-2" />
-          <span>Form submitted successfully!</span>
+          <span>Information saved! Moving to next step...</span>
         </div>
       )}
 
@@ -334,7 +333,7 @@ const PersonalInfoForm: React.FC = () => {
             className="w-full min-h-[44px] bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={submitted && !submitSuccess}
           >
-            {submitted && !submitSuccess ? 'Submitting...' : 'Submit'}
+            {submitted && !submitSuccess ? 'Submitting...' : 'Continue to Next Step'}
           </button>
         </div>
       </form>

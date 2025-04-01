@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { HelpCircle, PlusCircle, MinusCircle, DollarSign, AlertCircle } from 'lucide-react';
+import { useFormData } from '../context/FormDataContext'; // Fix: Import useFormData
 
 interface AdditionalIncome {
   id: string;
@@ -28,7 +29,13 @@ interface FormErrors {
   [key: string]: string;
 }
 
-const IncomeForm: React.FC = () => {
+interface IncomeFormProps {
+  onNextStep: () => void;
+}
+
+const IncomeForm: React.FC<IncomeFormProps> = ({ onNextStep }) => {
+  const { updatePersonalIncome, updateCompanyIncome } = useFormData(); // Fix: Use context functions
+
   const [personalIncome, setPersonalIncome] = useState<PersonalIncome>({
     monthlySalary: '',
     investmentReturns: '',
@@ -144,6 +151,13 @@ const IncomeForm: React.FC = () => {
     e.preventDefault();
     // Handle form submission
     console.log({ personalIncome, companyIncome });
+    
+    // Update the context
+    updatePersonalIncome(personalIncome); // Fix: Call context update function
+    updateCompanyIncome(companyIncome); // Fix: Call context update function
+    
+    // Move to next step
+    onNextStep();
   };
 
   const renderTooltip = (text: string) => (
