@@ -36,7 +36,7 @@ const ReasonableSalaryForm: React.FC<ReasonableSalaryFormProps> = ({ onSubmit })
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setSubmitMessage("Validating information...");
+    setSubmitMessage("");
 
     if (validateSalary()) {
       try {
@@ -45,9 +45,11 @@ const ReasonableSalaryForm: React.FC<ReasonableSalaryFormProps> = ({ onSubmit })
 
         // Trigger the final submission with all form data
         await onSubmit(contextFormData); // Fix: Await onSubmit to handle async behavior
+        setSubmitMessage("Information submitted successfully!");
       } catch (error) {
         console.error('Error submitting salary:', error);
         setSubmitMessage(`Error: ${error instanceof Error ? error.message : "An unknown error occurred"}`);
+      } finally {
         setIsSubmitting(false);
       }
     } else {
