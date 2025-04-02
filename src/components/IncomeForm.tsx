@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { HelpCircle, PlusCircle, MinusCircle, DollarSign, AlertCircle } from 'lucide-react';
 import { useFormData } from '../context/FormDataContext'; // Fix: Import useFormData
 
@@ -55,6 +55,15 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onNextStep }) => {
   const [errors, setErrors] = useState<FormErrors>({});
   const [personalTotal, setPersonalTotal] = useState<number>(0);
   const [companyTotal, setCompanyTotal] = useState<number>(0);
+  const monthlySalaryRef = useRef<HTMLInputElement>(null);
+  const investmentReturnsRef = useRef<HTMLInputElement>(null);
+  const rentalIncomeRef = useRef<HTMLInputElement>(null);
+  const freelanceEarningsRef = useRef<HTMLInputElement>(null);
+  const baseSalaryRef = useRef<HTMLInputElement>(null);
+  const bonusesRef = useRef<HTMLInputElement>(null);
+  const commissionRef = useRef<HTMLInputElement>(null);
+  const stockOptionsRef = useRef<HTMLInputElement>(null);
+  const benefitsRef = useRef<HTMLInputElement>(null);
 
   const validateNumber = (value: string): boolean => {
     return /^\d*\.?\d{0,2}$/.test(value) && Number(value) >= 0;
@@ -121,7 +130,7 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onNextStep }) => {
   };
 
   useEffect(() => {
-    const calculateTotal = (obj: Record<string, string>): number => {
+    const calculateTotal = (obj: Record<string, any>): number => {
       return Object.values(obj).reduce((sum, value) => {
         const numValue = parseFloat(value) || 0;
         return sum + numValue;
@@ -147,17 +156,80 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onNextStep }) => {
     setCompanyTotal(companySubtotal);
   }, [personalIncome, companyIncome]);
 
+  const validateForm = (): boolean => {
+    const newErrors: FormErrors = {};
+
+    if (!personalIncome.monthlySalary) {
+      newErrors.monthlySalary = 'Monthly Salary is required';
+    }
+
+    if (!personalIncome.investmentReturns) {
+      newErrors.investmentReturns = 'Investment Returns is required';
+    }
+
+    if (!personalIncome.rentalIncome) {
+      newErrors.rentalIncome = 'Rental Income is required';
+    }
+
+    if (!personalIncome.freelanceEarnings) {
+      newErrors.freelanceEarnings = 'Freelance Earnings is required';
+    }
+
+    if (!companyIncome.baseSalary) {
+      newErrors.baseSalary = 'Base Salary is required';
+    }
+
+    if (!companyIncome.bonuses) {
+      newErrors.bonuses = 'Bonuses is required';
+    }
+
+    if (!companyIncome.commission) {
+      newErrors.commission = 'Commission is required';
+    }
+
+    if (!companyIncome.stockOptions) {
+      newErrors.stockOptions = 'Stock Options is required';
+    }
+
+    if (!companyIncome.benefits) {
+      newErrors.benefits = 'Benefits is required';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission
-    console.log({ personalIncome, companyIncome });
-    
-    // Update the context
-    updatePersonalIncome(personalIncome); // Fix: Call context update function
-    updateCompanyIncome(companyIncome); // Fix: Call context update function
-    
-    // Move to next step
-    onNextStep();
+
+    if (validateForm()) {
+      // Update the context
+      updatePersonalIncome(personalIncome); // Fix: Call context update function
+      updateCompanyIncome(companyIncome); // Fix: Call context update function
+
+      // Move to next step
+      onNextStep();
+    } else {
+      if (!personalIncome.monthlySalary && monthlySalaryRef.current) {
+        monthlySalaryRef.current.focus();
+      } else if (!personalIncome.investmentReturns && investmentReturnsRef.current) {
+        investmentReturnsRef.current.focus();
+      } else if (!personalIncome.rentalIncome && rentalIncomeRef.current) {
+        rentalIncomeRef.current.focus();
+      } else if (!personalIncome.freelanceEarnings && freelanceEarningsRef.current) {
+        freelanceEarningsRef.current.focus();
+      } else if (!companyIncome.baseSalary && baseSalaryRef.current) {
+        baseSalaryRef.current.focus();
+      } else if (!companyIncome.bonuses && bonusesRef.current) {
+        bonusesRef.current.focus();
+      } else if (!companyIncome.commission && commissionRef.current) {
+        commissionRef.current.focus();
+      } else if (!companyIncome.stockOptions && stockOptionsRef.current) {
+        stockOptionsRef.current.focus();
+      } else if (!companyIncome.benefits && benefitsRef.current) {
+        benefitsRef.current.focus();
+      }
+    }
   };
 
   const renderTooltip = (text: string) => (
@@ -171,7 +243,7 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onNextStep }) => {
   );
 
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md">
+    <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md">
       <h2 className="text-2xl font-semibold text-gray-800 mb-6">
         Income Information
       </h2>
@@ -205,6 +277,7 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onNextStep }) => {
                     errors.monthlySalary ? 'border-red-500' : 'border-gray-300'
                   }`}
                   placeholder="0.00"
+                  ref={monthlySalaryRef}
                 />
               </div>
               {errors.monthlySalary && (
@@ -236,6 +309,7 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onNextStep }) => {
                     errors.investmentReturns ? 'border-red-500' : 'border-gray-300'
                   }`}
                   placeholder="0.00"
+                  ref={investmentReturnsRef}
                 />
               </div>
               {errors.investmentReturns && (
@@ -267,6 +341,7 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onNextStep }) => {
                     errors.rentalIncome ? 'border-red-500' : 'border-gray-300'
                   }`}
                   placeholder="0.00"
+                  ref={rentalIncomeRef}
                 />
               </div>
               {errors.rentalIncome && (
@@ -298,6 +373,7 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onNextStep }) => {
                     errors.freelanceEarnings ? 'border-red-500' : 'border-gray-300'
                   }`}
                   placeholder="0.00"
+                  ref={freelanceEarningsRef}
                 />
               </div>
               {errors.freelanceEarnings && (
@@ -438,6 +514,7 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onNextStep }) => {
                     errors.baseSalary ? 'border-red-500' : 'border-gray-300'
                   }`}
                   placeholder="0.00"
+                  ref={baseSalaryRef}
                 />
               </div>
               {errors.baseSalary && (
@@ -469,6 +546,7 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onNextStep }) => {
                     errors.bonuses ? 'border-red-500' : 'border-gray-300'
                   }`}
                   placeholder="0.00"
+                  ref={bonusesRef}
                 />
               </div>
               {errors.bonuses && (
@@ -500,6 +578,7 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onNextStep }) => {
                     errors.commission ? 'border-red-500' : 'border-gray-300'
                   }`}
                   placeholder="0.00"
+                  ref={commissionRef}
                 />
               </div>
               {errors.commission && (
@@ -517,7 +596,7 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onNextStep }) => {
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
                 Stock Options
-                {renderTooltip('Value of vested stock options')}
+                {renderTooltip('Income from stock options or equity')}
               </label>
               <div className="relative">
                 <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
@@ -531,6 +610,7 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onNextStep }) => {
                     errors.stockOptions ? 'border-red-500' : 'border-gray-300'
                   }`}
                   placeholder="0.00"
+                  ref={stockOptionsRef}
                 />
               </div>
               {errors.stockOptions && (
@@ -547,8 +627,8 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onNextStep }) => {
                 htmlFor="benefits"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
-                Benefits Value
-                {renderTooltip('Monetary value of company benefits')}
+                Benefits
+                {renderTooltip('Value of employer-provided benefits')}
               </label>
               <div className="relative">
                 <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
@@ -562,6 +642,7 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onNextStep }) => {
                     errors.benefits ? 'border-red-500' : 'border-gray-300'
                   }`}
                   placeholder="0.00"
+                  ref={benefitsRef}
                 />
               </div>
               {errors.benefits && (
@@ -590,12 +671,13 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onNextStep }) => {
           </p>
         </div>
 
-        <div className="pt-6">
+        {/* Submit Button */}
+        <div className="pt-4">
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+            className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Submit Income Information
+            Save Income Information & Continue
           </button>
         </div>
       </form>

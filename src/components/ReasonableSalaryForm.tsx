@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { AlertCircle, DollarSign } from 'lucide-react';
 import { useFormData } from '../context/FormDataContext';
 
@@ -16,6 +16,7 @@ const ReasonableSalaryForm: React.FC<ReasonableSalaryFormProps> = ({ onSubmit })
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState<string>("");
+  const salaryInputRef = useRef<HTMLInputElement>(null);
 
   // Update local state when context data changes
   useEffect(() => {
@@ -51,10 +52,13 @@ const ReasonableSalaryForm: React.FC<ReasonableSalaryFormProps> = ({ onSubmit })
         setSubmitMessage(`Error: ${error instanceof Error ? error.message : "An unknown error occurred"}`);
       } finally {
         setIsSubmitting(false);
+        setSubmitMessage("");
       }
     } else {
-      setSubmitMessage("");
       setIsSubmitting(false);
+      if (salaryInputRef.current) {
+        salaryInputRef.current.focus();
+      }
     }
   };
 
@@ -105,6 +109,7 @@ const ReasonableSalaryForm: React.FC<ReasonableSalaryFormProps> = ({ onSubmit })
               className={`w-full pl-10 pr-3 py-2 border rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 ${
                 errors.salary ? 'border-red-500' : 'border-gray-300'
               }`}
+              ref={salaryInputRef}
             />
           </div>
           {errors.salary && (
@@ -124,7 +129,7 @@ const ReasonableSalaryForm: React.FC<ReasonableSalaryFormProps> = ({ onSubmit })
             disabled={isSubmitting}
             className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isSubmitting ? 'Submitting...' : 'Complete & Submit All Information'}
+            {isSubmitting ? 'Submitting...' : 'Complete & Submit'}
           </button>
         </div>
       </form>

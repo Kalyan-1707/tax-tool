@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { AlertCircle, DollarSign } from 'lucide-react';
 import { useFormData } from '../context/FormDataContext'; // Fix: Import useFormData
 
@@ -59,6 +59,12 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onNextStep }) => {
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const dateInputRef = useRef<HTMLInputElement>(null);
+  const typeInputRef = useRef<HTMLSelectElement>(null);
+  const amountInputRef = useRef<HTMLInputElement>(null);
+  const descriptionInputRef = useRef<HTMLTextAreaElement>(null);
+  const categoryInputRef = useRef<HTMLSelectElement>(null);
+  const paymentMethodInputRef = useRef<HTMLSelectElement>(null);
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -156,6 +162,20 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onNextStep }) => {
       } catch (error) {
         console.error('Error submitting transaction:', error);
       }
+    } else {
+      if (!formData.date && dateInputRef.current) {
+        dateInputRef.current.focus();
+      } else if (!formData.type && typeInputRef.current) {
+        typeInputRef.current.focus();
+      } else if (!formData.amount && amountInputRef.current) {
+        amountInputRef.current.focus();
+      } else if (!formData.description && descriptionInputRef.current) {
+        descriptionInputRef.current.focus();
+      } else if (!formData.category && categoryInputRef.current) {
+        categoryInputRef.current.focus();
+      } else if (!formData.paymentMethod && paymentMethodInputRef.current) {
+        paymentMethodInputRef.current.focus();
+      }
     }
 
     setIsSubmitting(false);
@@ -191,6 +211,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onNextStep }) => {
             className={`w-full px-3 py-2 border rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 ${
               errors.date ? 'border-red-500' : 'border-gray-300'
             }`}
+            ref={dateInputRef}
           />
           {errors.date && (
             <p className="mt-1 text-sm text-red-600 flex items-center">
@@ -216,6 +237,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onNextStep }) => {
             className={`w-full px-3 py-2 border rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 ${
               errors.type ? 'border-red-500' : 'border-gray-300'
             }`}
+            ref={typeInputRef}
           >
             <option value="">Select a type</option>
             {TRANSACTION_TYPES.map(type => (
@@ -252,6 +274,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onNextStep }) => {
               className={`w-full pl-10 pr-3 py-2 border rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 ${
                 errors.amount ? 'border-red-500' : 'border-gray-300'
               }`}
+              ref={amountInputRef}
             />
           </div>
           {errors.amount && (
@@ -280,6 +303,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onNextStep }) => {
               errors.description ? 'border-red-500' : 'border-gray-300'
             }`}
             placeholder="Enter transaction details (minimum 10 characters)"
+            ref={descriptionInputRef}
           />
           {errors.description && (
             <p className="mt-1 text-sm text-red-600 flex items-center">
@@ -305,6 +329,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onNextStep }) => {
             className={`w-full px-3 py-2 border rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 ${
               errors.category ? 'border-red-500' : 'border-gray-300'
             }`}
+            ref={categoryInputRef}
           >
             <option value="">Select a category</option>
             {CATEGORIES.map(category => (
@@ -337,6 +362,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onNextStep }) => {
             className={`w-full px-3 py-2 border rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 ${
               errors.paymentMethod ? 'border-red-500' : 'border-gray-300'
             }`}
+            ref={paymentMethodInputRef}
           >
             <option value="">Select a payment method</option>
             {PAYMENT_METHODS.map(method => (
@@ -360,7 +386,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onNextStep }) => {
             disabled={isSubmitting}
             className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isSubmitting ? 'Recording Transaction...' : 'Record Transaction'}
+            {isSubmitting ? 'Recording Transaction...' : 'Save Transaction & Continue'}
           </button>
         </div>
       </form>

@@ -102,12 +102,21 @@ const defaultFormData: FormData = {
 
 const FormDataContext = createContext<FormDataContextType | undefined>(undefined);
 
+const LOCAL_STORAGE_KEY = 'tax_form_data';
+
 export const FormDataProvider: React.FC<{children: ReactNode}> = ({ children }) => {
-  const [formData, setFormData] = useState<FormData>(defaultFormData);
+  const [formData, setFormData] = useState<FormData>(() => {
+    const storedData = localStorage.getItem(LOCAL_STORAGE_KEY);
+    return storedData ? JSON.parse(storedData) : defaultFormData;
+  });
 
   const updatePersonalInfo = (data: PersonalInfo) => {
     setFormData(prevState => ({
       ...prevState,
+      personalInfo: data,
+    }));
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({
+      ...formData,
       personalInfo: data,
     }));
   };
@@ -117,6 +126,13 @@ export const FormDataProvider: React.FC<{children: ReactNode}> = ({ children }) 
       ...prevState,
       incomeData: {
         ...prevState.incomeData,
+        personalIncome: data,
+      },
+    }));
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({
+      ...formData,
+      incomeData: {
+        ...formData.incomeData,
         personalIncome: data,
       },
     }));
@@ -130,6 +146,13 @@ export const FormDataProvider: React.FC<{children: ReactNode}> = ({ children }) 
         companyIncome: data,
       },
     }));
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({
+      ...formData,
+      incomeData: {
+        ...formData.incomeData,
+        companyIncome: data,
+      },
+    }));
   };
 
   const updateTransactionData = (data: TransactionData) => {
@@ -137,11 +160,19 @@ export const FormDataProvider: React.FC<{children: ReactNode}> = ({ children }) 
       ...prevState,
       transactionData: data,
     }));
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({
+      ...formData,
+      transactionData: data,
+    }));
   };
 
   const updateReasonableSalary = (salary: string) => {
     setFormData(prevState => ({
       ...prevState,
+      reasonableSalary: salary,
+    }));
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({
+      ...formData,
       reasonableSalary: salary,
     }));
   };

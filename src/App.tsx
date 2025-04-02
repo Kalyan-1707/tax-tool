@@ -9,11 +9,7 @@ import { submitToWeb3Forms } from './utils/web3forms';
 
 function App() {
   const [currentStep, setCurrentStep] = useState(1);
-  const [submitStatus, setSubmitStatus] = useState<{
-    isSubmitting: boolean;
-    success: boolean;
-    message: string;
-  }>({
+  const [submitStatus, setSubmitStatus] = useState({
     isSubmitting: false,
     success: false,
     message: '',
@@ -24,8 +20,44 @@ function App() {
   };
 
   const goToStep = (step: number) => {
+    // Implement validation logic here
     if (step >= 1 && step <= 4) {
-      setCurrentStep(step);
+      // Check if previous steps are valid
+      let isValid = true;
+      let validationMessage = "";
+      const storedData = localStorage.getItem('tax_form_data');
+      let formData;
+      if (storedData) {
+         formData = JSON.parse(storedData);
+      }
+
+      if (step > 1) {
+        // Basic validation for Personal Info (Step 1)
+        
+        if (!formData?.personalInfo?.fullName || !formData?.personalInfo?.email || !formData?.personalInfo?.dateOfBirth || !formData?.personalInfo?.contactMethod) {
+          isValid = false;
+          validationMessage = "Please complete all required fields in Personal Information.";
+        }
+      }
+      if (step > 2 && isValid) {
+           if (!formData?.incomeData?.personalIncome?.monthlySalary || !formData?.incomeData?.personalIncome?.investmentReturns || !formData?.incomeData?.personalIncome?.rentalIncome || !formData?.incomeData?.personalIncome?.freelanceEarnings || !formData?.incomeData?.companyIncome?.baseSalary || !formData?.incomeData?.companyIncome?.bonuses || !formData?.incomeData?.companyIncome?.commission || !formData?.incomeData?.companyIncome?.stockOptions || !formData?.companyIncome?.benefits) {
+            isValid = false;
+            validationMessage = "Please complete all required fields in Income Information.";
+          }
+      }
+      if (step > 3 && isValid) {
+           if (!formData?.transactionData?.date || !formData?.transactionData?.type || !formData?.transactionData?.amount || !formData?.transactionData?.description || !formData?.transactionData?.category || !formData?.transactionData?.paymentMethod) {
+            isValid = false;
+            validationMessage = "Please complete all required fields in Transaction Information.";
+          }
+      }
+
+      if (isValid) {
+        setCurrentStep(step);
+        setSubmitStatus(prevStatus => ({ ...prevStatus, message: "" })); // Clear any previous error message
+      } else {
+        setSubmitStatus({ isSubmitting: false, success: false, message: validationMessage });
+      }
     }
   };
 
@@ -50,8 +82,10 @@ function App() {
         email: formData.personalInfo.email,
       };
 
+      const jsonData = JSON.stringify(submissionData);
+
       // Submit all data to Web3Forms
-      const result = await submitToWeb3Forms(submissionData);
+      const result = await submitToWeb3Forms(JSON.parse(jsonData));
 
       if (result.success) {
         setSubmitStatus({
@@ -97,31 +131,42 @@ function App() {
         <Header />
         <main className="container mx-auto p-4 mt-8 space-y-8">
           {/* Wizard Progress Bar */}
-          <div className="flex flex-wrap justify-between items-center mb-8">
-            {['Personal Info', 'Income', 'Expenses', 'Reasonable Salary'].map((label, index) => (
-              <button
-                key={index}
-                onClick={() => goToStep(index + 1)}
-                className={`px-4 py-2 m-2 rounded-md flex-grow sm:flex-grow-0 ${
-                  currentStep === index + 1
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 text-gray-600'
-                }`}
-              >
-                <span className="inline-block w-6 h-6 rounded-full bg-white text-blue-600 mr-2 text-center leading-6">
-                  {index + 1}
-                </span>
-                {label}
-              </button>
-            ))}
+          <div className="mb-8">
+            <div className="bg-gray-200 rounded-full h-2 mb-4">
+              <div
+                className="bg-blue-600 h-2 rounded-full"
+                style={{ width: `${(currentStep - 1) * (100 / 3)}%` }}
+              ></div>
+            </div>
+            <div className="text-sm font-medium text-gray-700 text-center">
+              {Math.round((currentStep - 1) * (100 / 3))}% Complete
+            </div>
+            <div className="flex flex-wrap justify-between items-center mt-2">
+              {['Personal Info', 'Income', 'Expenses', 'Reasonable Salary'].map((label, index) => (
+                <button
+                  key={index}
+                  onClick={() => goToStep(index + 1)}
+                  className={`px-4 py-2 m-2 rounded-md flex-grow sm:flex-grow-0 ${
+                    currentStep === index + 1
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                  } transition-colors duration-200`}
+                >
+                  <span className="inline-block w-6 h-6 rounded-full bg-white text-blue-600 mr-2 text-center leading-6">
+                    {index + 1}
+                  </span>
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Submission Status Messages */}
           {submitStatus.message && (
-            <div 
+            <div
               className={`p-4 mb-6 rounded-md ${
-                submitStatus.success 
-                  ? 'bg-green-100 border border-green-400 text-green-700' 
+                submitStatus.success
+                  ? 'bg-green-100 border border-green-400 text-green-700'
                   : 'bg-yellow-100 border border-yellow-400 text-yellow-700'
               }`}
             >
@@ -130,7 +175,21 @@ function App() {
           )}
 
           {/* Step Content */}
-          {renderStepContent()}
+          {submitStatus.success ? (
+            <div className="text-center mt-4">
+              <button
+                className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+                onClick={() => {
+                  localStorage.removeItem('tax_form_data');
+                  window.location.reload();
+                }}
+              >
+                Start New Form
+              </button>
+            </div>
+          ) : (
+            renderStepContent()
+          )}
         </main>
       </div>
     </FormDataProvider>

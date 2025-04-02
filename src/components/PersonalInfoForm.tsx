@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useFormData } from '../context/FormDataContext';
 
@@ -25,6 +25,10 @@ const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ onNextStep }) => {
   const [errors, setErrors] = useState<FormErrors>({});
   const [submitted, setSubmitted] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const fullNameInputRef = useRef<HTMLInputElement>(null);
+  const emailInputRef = useRef<HTMLInputElement>(null);
+  const dobInputRef = useRef<HTMLInputElement>(null);
+  //const contactMethodRef = useRef<HTMLFieldSetElement>(null);
 
   // Update local state when context data changes
   useEffect(() => {
@@ -44,18 +48,12 @@ const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ onNextStep }) => {
       newErrors.email = 'Please enter a valid email address';
     }
 
-    if (formData.phone && !/^\+?[\d\s-()]{10,}$/.test(formData.phone)) {
-      newErrors.phone = 'Please enter a valid phone number';
-    }
-
     if (!formData.dateOfBirth) {
       newErrors.dateOfBirth = 'Date of birth is required';
-    } else {
-      const dob = new Date(formData.dateOfBirth);
-      const today = new Date();
-      if (dob > today) {
-        newErrors.dateOfBirth = 'Date of birth cannot be in the future';
-      }
+    }
+
+    if (!formData.contactMethod) {
+      newErrors.contactMethod = 'Please select a contact method';
     }
 
     setErrors(newErrors);
@@ -70,24 +68,31 @@ const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ onNextStep }) => {
       try {
         // Update the context with form data
         updatePersonalInfo(formData);
-        
+
         // Simulate API call
         await new Promise(resolve => setTimeout(resolve, 1000));
         setSubmitSuccess(true);
-        
+
         // Move to next step after short delay to show success message
-        setTimeout(() => {
-          onNextStep();
-        }, 1500);
+        onNextStep();
       } catch (error) {
         setSubmitSuccess(false);
         console.error("Error submitting form:", error);
       }
+    } else {
+      // Focus on the first invalid field
+      if (!formData.fullName.trim() && fullNameInputRef.current) {
+        fullNameInputRef.current.focus();
+      } else if (!formData.email.trim() && emailInputRef.current) {
+        emailInputRef.current.focus();
+      } else if (!formData.dateOfBirth && dobInputRef.current) {
+        dobInputRef.current.focus();
+      } 
     }
   };
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -134,6 +139,7 @@ const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ onNextStep }) => {
             aria-required="true"
             aria-invalid={!!errors.fullName}
             aria-describedby={errors.fullName ? 'fullName-error' : undefined}
+            ref={fullNameInputRef}
           />
           {errors.fullName && (
             <p
@@ -166,6 +172,7 @@ const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ onNextStep }) => {
             aria-required="true"
             aria-invalid={!!errors.email}
             aria-describedby={errors.email ? 'email-error' : undefined}
+            ref={emailInputRef}
           />
           {errors.email && (
             <p
@@ -232,6 +239,7 @@ const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ onNextStep }) => {
             aria-required="true"
             aria-invalid={!!errors.dateOfBirth}
             aria-describedby={errors.dateOfBirth ? 'dob-error' : undefined}
+            ref={dobInputRef}
           />
           {errors.dateOfBirth && (
             <p
@@ -333,7 +341,7 @@ const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ onNextStep }) => {
             className="w-full min-h-[44px] bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={submitted && !submitSuccess}
           >
-            {submitted && !submitSuccess ? 'Submitting...' : 'Continue to Next Step'}
+            {submitted && !submitSuccess ? 'Submitting...' : 'Save Personal Information & Continue'}
           </button>
         </div>
       </form>
